@@ -323,4 +323,4 @@ pip-selfcheck.json
 # Virtualenv
 # http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
 
-# End of https://www.toptal.com/developers/gitignore/api/flask,python,pycharm+all,redis,virtualenv,venv
+# End of https://www.toptal.com/developers/gitignore/api/flask,python,pycharm+all,redis,virtualenv,venv!/dev.db

@@ -1,53 +1,84 @@
-# -*- coding: utf-8 -*-
-"""Defines fixtures available to all tests."""
-
-import logging
-
+import json
 import pytest
-from webtest import TestApp
+from dotenv import load_dotenv
 
-from yousician.app import create_app
-from yousician.database import db as _db
+from new.models import User
+from new.app import create_app
+from new.extensions import db as _db
+from pytest_factoryboy import register
+from tests.factories import UserFactory
 
-from .factories import UserFactory
+
+register(UserFactory)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def app():
-    """Create application for the tests."""
-    _app = create_app("tests.settings")
-    _app.logger.setLevel(logging.CRITICAL)
-    ctx = _app.test_request_context()
-    ctx.push()
-
-    yield _app
-
-    ctx.pop()
-
-
-@pytest.fixture
-def testapp(app):
-    """Create Webtest app."""
-    return TestApp(app)
+    load_dotenv(".testenv")
+    app = create_app(testing=True)
+    return app
 
 
 @pytest.fixture
 def db(app):
-    """Create database for the tests."""
     _db.app = app
+
     with app.app_context():
         _db.create_all()
 
     yield _db
 
-    # Explicitly close DB connection
     _db.session.close()
     _db.drop_all()
 
 
 @pytest.fixture
-def user(db):
-    """Create user for the tests."""
-    user = UserFactory(password="myprecious")
+def admin_user(db):
+    user = User(
+        username='admin',
+        email='admin@admin.com',
+        password='admin'
+    )
+
+    db.session.add(user)
     db.session.commit()
+
     return user
+
+
+@pytest.fixture
+def admin_headers(admin_user, client):
+    data = {
+        'username': admin_user.username,
+        'password': 'admin'
+    }
+    rep = client.post(
+        '/auth/login',
+        data=json.dumps(data),
+        headers={'content-type': 'application/json'}
+    )
+
+    tokens = json.loads(rep.get_data(as_text=True))
+    return {
+        'content-type': 'application/json',
+        'authorization': 'Bearer %s' % tokens['access_token']
+    }
+
+
+@pytest.fixture
+def admin_refresh_headers(admin_user, client):
+    data = {
+        'username': admin_user.username,
+        'password': 'admin'
+    }
+    rep = client.post(
+        '/auth/login',
+        data=json.dumps(data),
+        headers={'content-type': 'application/json'}
+    )
+
+    tokens = json.loads(rep.get_data(as_text=True))
+    return {
+        'content-type': 'application/json',
+        'authorization': 'Bearer %s' % tokens['refresh_token']
+    }

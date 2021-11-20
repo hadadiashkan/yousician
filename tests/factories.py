@@ -1,30 +1,12 @@
-# -*- coding: utf-8 -*-
-"""Factories to help in tests."""
-from factory import Sequence
-from factory.alchemy import SQLAlchemyModelFactory
-
-from yousician.database import db
-from yousician.user.models import User
+import factory
+from new.models import User
 
 
-class BaseFactory(SQLAlchemyModelFactory):
-    """Base factory."""
+class UserFactory(factory.Factory):
+
+    username = factory.Sequence(lambda n: "user%d" % n)
+    email = factory.Sequence(lambda n: "user%d@mail.com" % n)
+    password = "mypwd"
 
     class Meta:
-        """Factory configuration."""
-
-        abstract = True
-        sqlalchemy_session = db.session
-
-
-class UserFactory(BaseFactory):
-    """User factory."""
-
-    username = Sequence(lambda n: f"user{n}")
-    email = Sequence(lambda n: f"user{n}@example.com")
-    active = True
-
-    class Meta:
-        """Factory configuration."""
-
         model = User
