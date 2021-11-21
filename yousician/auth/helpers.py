@@ -6,10 +6,9 @@ https://github.com/vimalloc/flask-jwt-extended/blob/master/examples/blocklist_da
 from datetime import datetime
 
 from flask_jwt_extended import decode_token
-from sqlalchemy.orm.exc import NoResultFound
-
 from new.extensions import db
 from new.models import TokenBlocklist
+from sqlalchemy.orm.exc import NoResultFound
 
 
 def add_token_to_database(encoded_token, identity_claim):

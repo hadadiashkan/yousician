@@ -1,4 +1,4 @@
-from new.extensions import celery
+from yousician.extensions import celery
 
 
 @celery.task

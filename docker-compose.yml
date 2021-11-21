@@ -16,16 +16,16 @@ x-mongo-volumes: &mongo_volumes
 
 
 services:
-#  flask-dev:
-#    build:
-#      context: .
-#      target: development
-#      args:
-#        <<: *build_args
-#    image: "yousician-development"
-#    ports:
-#      - "8000:5000"
-#    <<: *default_volumes
+  flask-dev:
+    build:
+      context: .
+      target: development
+      args:
+        <<: *build_args
+    image: "yousician-development"
+    ports:
+      - "8000:5000"
+    <<: *default_volumes
 
   flask-prod:
     build:
@@ -36,11 +36,10 @@ services:
     image: "yousician-production"
     ports:
       - "8000:5000"
-    environment:
-      FLASK_ENV: production
-      FLASK_DEBUG: 0
-      LOG_LEVEL: info
-      GUNICORN_WORKERS: 4
+    depends_on:
+      - "mongodb"
+    env_file:
+      - '.env'
     <<: *default_volumes
 
   manage:

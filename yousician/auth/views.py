@@ -1,16 +1,16 @@
-from flask import request, jsonify, Blueprint, current_app as app
+from flask import Blueprint
+from flask import current_app as app
+from flask import jsonify, request
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
-    jwt_required,
-    get_jwt_identity,
     get_jwt,
+    get_jwt_identity,
+    jwt_required,
 )
-
+from new.auth.helpers import add_token_to_database, is_token_revoked, revoke_token
+from new.extensions import apispec, jwt, pwd_context
 from new.models import User
-from new.extensions import pwd_context, jwt, apispec
-from new.auth.helpers import revoke_token, is_token_revoked, add_token_to_database
-
 
 blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 

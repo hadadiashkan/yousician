@@ -6,29 +6,29 @@ Most configuration is set via environment variables.
 For local development, use a .env file to set
 environment variables.
 """
-from os import environ, getenv, path, urandom
-
-from dotenv import load_dotenv
+from os import path, urandom
 
 
-class Config(object):
-    """
-    Application Configuration
-    """
+class Config:
+    """Application Configuration."""
 
-    load_dotenv()
+    from environs import Env
+
+    env = Env()
+    env.read_env()
+
     BASE_DIR = path.dirname(path.dirname(__file__))
 
-    ENV = environ.get("FLASK_ENV", default="production")
+    ENV = env.str("FLASK_ENV", default="production")
     DEBUG = ENV == "development"
 
-    UPLOAD_DIR = getenv("UPLOAD_DIR")
-
     MONGODB_SETTINGS = {
-        "db": getenv("MONGODB_DB"),
-        "host": getenv("MONGODB_HOST"),
-        "port": int(getenv("MONGODB_PORT")),
+        "db": env.str("MONGODB_DB"),
+        "host": env.str("MONGODB_HOST"),
+        "port": env.int("MONGODB_PORT"),
     }
+
+    UPLOAD_DIR = env.str("UPLOAD_DIR")
 
     INSTALLED_RESOURCES = [
         "song",
@@ -38,4 +38,4 @@ class Config(object):
     PROPAGATE_EXCEPTIONS = True
 
     SECRET_KEY = urandom(24)
-    SEND_FILE_MAX_AGE_DEFAULT = getenv("SEND_FILE_MAX_AGE_DEFAULT")
+    SEND_FILE_MAX_AGE_DEFAULT = env.int("SEND_FILE_MAX_AGE_DEFAULT")

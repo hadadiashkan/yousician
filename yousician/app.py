@@ -7,12 +7,10 @@ import sys
 from flask import Flask, render_template
 
 from yousician import commands, song
-from yousician.extensions import (
-    mongo, jwt, apispec, celery
-)
+from yousician.extensions import apispec, celery, jwt, mongo
 
 
-def create_app(config_object="config.settings", testing=False):
+def create_app(config_object="config.settings.Config", testing=False):
     """Create application factory, as explained here: http://flask.pocoo.org/docs/patterns/appfactories/.
 
     :param config_object: The configuration object to use.
@@ -45,7 +43,9 @@ def register_extensions(app):
 def register_blueprints(app):
     """Register Flask blueprints."""
     for installed_app_resources in app.config["INSTALLED_RESOURCES"]:
-        app_resource = importlib.import_module(f"views.{installed_app_resources}")
+        app_resource = importlib.import_module(
+            f"yousician.{installed_app_resources}.routes"
+        )
         app.register_blueprint(app_resource.get_resources())
     return None
 

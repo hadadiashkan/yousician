@@ -1,7 +1,7 @@
 import marshmallow as mar
 import marshmallow_mongoengine as ma
 
-from .models import Song
+from .models import Rate, Song
 
 
 class SongSchema(ma.ModelSchema):
