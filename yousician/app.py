@@ -10,7 +10,7 @@ from yousician import commands, song
 from yousician.extensions import apispec, celery, jwt, mongo
 
 
-def create_app(config_object="config.settings.Config", testing=False):
+def create_app(config_object: str = "config.settings.Config", testing: bool = False) -> Flask:
     """Create application factory, as explained here: http://flask.pocoo.org/docs/patterns/appfactories/.
 
     :param config_object: The configuration object to use.
@@ -33,14 +33,14 @@ def create_app(config_object="config.settings.Config", testing=False):
     return app
 
 
-def register_extensions(app):
+def register_extensions(app: Flask) -> None:
     """Register Flask extensions."""
-    mongo.init_app(app) if not app.config.get('TESTING') else mongo.init_app(app, config={'alias': 'testdb'})
+    mongo.init_app(app)
     jwt.init_app(app)
     return None
 
 
-def register_blueprints(app):
+def register_blueprints(app: Flask) -> None:
     """Register Flask blueprints."""
     for installed_app_resources in app.config["INSTALLED_RESOURCES"]:
         app_resource = importlib.import_module(
@@ -50,7 +50,7 @@ def register_blueprints(app):
     return None
 
 
-def register_errorhandlers(app):
+def register_errorhandlers(app: Flask) -> None:
     """Register error handlers."""
 
     def render_error(error):
@@ -64,7 +64,7 @@ def register_errorhandlers(app):
     return None
 
 
-def register_shellcontext(app):
+def register_shellcontext(app: Flask) -> None:
     """Register shell context objects."""
 
     def shell_context():
@@ -74,20 +74,20 @@ def register_shellcontext(app):
     app.shell_context_processor(shell_context)
 
 
-def register_cli(app):
+def register_cli(app: Flask) -> None:
     """Register Click commands."""
     app.cli.add_command(commands.test)
     app.cli.add_command(commands.lint)
 
 
-def configure_logger(app):
+def configure_logger(app: Flask) -> None:
     """Configure loggers."""
     handler = logging.StreamHandler(sys.stdout)
     if not app.logger.handlers:
         app.logger.addHandler(handler)
 
 
-def register_apispec(app):
+def register_apispec(app: Flask) -> None:
     """Configure APISpec for swagger support"""
     apispec.init_app(app, security=[{"jwt": []}])
     apispec.spec.components.security_scheme(
@@ -106,7 +106,7 @@ def register_apispec(app):
     )
 
 
-def init_celery(app=None):
+def init_celery(app: Flask = None) -> celery:
     app = app or create_app()
     celery.conf.update(app.config.get("CELERY", {}))
 

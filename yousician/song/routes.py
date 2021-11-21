@@ -1,15 +1,16 @@
 import json
+from typing import Tuple, Union, Dict
 
 from bson import json_util
 from flask import Blueprint, request
 from flask_restful import Api, Resource
 from mongoengine import Q
 
+from .models import Rate, Song
+from .pipelines import max_min_average_rate_pipline
+from .schemas import RateSchema, RateValidator, SongSchema
 from ..utils.pagination import paginate
 from ..utils.response import custom_rest_response
-from .models import Rate, Song
-from .pipelines import RatePipline
-from .schemas import RateSchema, RateValidator, SongSchema
 
 
 class SongList(Resource):
@@ -44,16 +45,16 @@ class SongListAnalytic(Resource):
 
 
 class RateSong(Resource):
-    def get(self, song_id):
+    def get(self, song_id: str) -> Tuple[Union[Dict[str, bool], Dict[str, Union[bool, Dict[str, str]]]], int]:
         rate_analytics = Rate.objects(song_id=song_id).aggregate(
-            RatePipline.max_min_average_rate_pipline(song_id)
+            max_min_average_rate_pipline(song_id)
         )
 
         return custom_rest_response(
             data=json.dumps(list(rate_analytics), default=json_util.default)
         )
 
-    def post(self, song_id):
+    def post(self, song_id: str) -> Tuple[Union[Dict[str, bool], Dict[str, Union[bool, Dict[str, str]]]], int]:
         validated_data = RateValidator().load(request.get_json())
 
         # check song existence

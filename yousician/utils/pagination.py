@@ -1,18 +1,23 @@
 """Simple helper to paginate query
 """
+from typing import Optional, Dict, Tuple
+
 from flask import request, url_for
+from marshmallow_mongoengine import ModelSchema
+from mongoengine import QuerySetManager
 
 DEFAULT_PAGE_SIZE = 50
 DEFAULT_PAGE_NUMBER = 1
 
 
-def extract_pagination(page=None, per_page=None, **request_args):
+def extract_pagination(page: Optional[int] = None, per_page: Optional[int] = None, **request_args: dict) -> Tuple[
+    int, int, Dict[str, dict]]:
     page = int(page) if page is not None else DEFAULT_PAGE_NUMBER
     per_page = int(per_page) if per_page is not None else DEFAULT_PAGE_SIZE
     return page, per_page, request_args
 
 
-def paginate(query, schema):
+def paginate(query: QuerySetManager, schema: ModelSchema) -> Dict[str, str]:
     page, per_page, other_request_args = extract_pagination(**request.args)
     page_obj = query.paginate(page=page, per_page=per_page)
     next_ = url_for(
