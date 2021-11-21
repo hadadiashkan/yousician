@@ -6,18 +6,36 @@ Most configuration is set via environment variables.
 For local development, use a .env file to set
 environment variables.
 """
-from environs import Env
+from os import environ, getenv, path, urandom
 
-env = Env()
-env.read_env()
+from dotenv import load_dotenv
 
-ENV = env.str("FLASK_ENV", default="production")
-DEBUG = ENV == "development"
-SQLALCHEMY_DATABASE_URI = env.str("DATABASE_URL")
-SECRET_KEY = env.str("SECRET_KEY")
-SEND_FILE_MAX_AGE_DEFAULT = env.int("SEND_FILE_MAX_AGE_DEFAULT")
-BCRYPT_LOG_ROUNDS = env.int("BCRYPT_LOG_ROUNDS", default=13)
-DEBUG_TB_ENABLED = DEBUG
-DEBUG_TB_INTERCEPT_REDIRECTS = False
-CACHE_TYPE = "simple"  # Can be "memcached", "redis", etc.
-SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+class Config(object):
+    """
+    Application Configuration
+    """
+
+    load_dotenv()
+    BASE_DIR = path.dirname(path.dirname(__file__))
+
+    ENV = environ.get("FLASK_ENV", default="production")
+    DEBUG = ENV == "development"
+
+    UPLOAD_DIR = getenv("UPLOAD_DIR")
+
+    MONGODB_SETTINGS = {
+        "db": getenv("MONGODB_DB"),
+        "host": getenv("MONGODB_HOST"),
+        "port": int(getenv("MONGODB_PORT")),
+    }
+
+    INSTALLED_RESOURCES = [
+        "song",
+    ]
+
+    # To enable flask to catch package exceptions
+    PROPAGATE_EXCEPTIONS = True
+
+    SECRET_KEY = urandom(24)
+    SEND_FILE_MAX_AGE_DEFAULT = getenv("SEND_FILE_MAX_AGE_DEFAULT")

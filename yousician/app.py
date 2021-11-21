@@ -1,56 +1,52 @@
 # -*- coding: utf-8 -*-
 """The app module, containing the app factory function."""
+import importlib
 import logging
 import sys
 
 from flask import Flask, render_template
 
-from yousician import commands, public, user
+from yousician import commands, song
 from yousician.extensions import (
-    bcrypt,
-    cache,
-    csrf_protect,
-    db,
-    debug_toolbar,
-    flask_static_digest,
-    login_manager,
-    migrate,
+    mongo, jwt, apispec, celery
 )
 
 
-def create_app(config_object="yousician.settings"):
+def create_app(config_object="config.settings", testing=False):
     """Create application factory, as explained here: http://flask.pocoo.org/docs/patterns/appfactories/.
 
     :param config_object: The configuration object to use.
+    :param testing: determine testing mode.
     """
     app = Flask(__name__.split(".")[0])
     app.config.from_object(config_object)
+
+    if testing is True:
+        app.config["TESTING"] = True
+
     register_extensions(app)
+    register_cli(app)
+    register_apispec(app)
     register_blueprints(app)
     register_errorhandlers(app)
     register_shellcontext(app)
-    register_commands(app)
     configure_logger(app)
+    init_celery(app)
     return app
 
 
 def register_extensions(app):
     """Register Flask extensions."""
-    bcrypt.init_app(app)
-    cache.init_app(app)
-    db.init_app(app)
-    csrf_protect.init_app(app)
-    login_manager.init_app(app)
-    debug_toolbar.init_app(app)
-    migrate.init_app(app, db)
-    flask_static_digest.init_app(app)
+    mongo.init_app(app)
+    jwt.init_app(app)
     return None
 
 
 def register_blueprints(app):
     """Register Flask blueprints."""
-    app.register_blueprint(public.views.blueprint)
-    app.register_blueprint(user.views.blueprint)
+    for installed_app_resources in app.config["INSTALLED_RESOURCES"]:
+        app_resource = importlib.import_module(f"views.{installed_app_resources}")
+        app.register_blueprint(app_resource.get_resources())
     return None
 
 
@@ -73,12 +69,12 @@ def register_shellcontext(app):
 
     def shell_context():
         """Shell context objects."""
-        return {"db": db, "User": user.models.User}
+        return {"mongo": mongo, "Song": song.models.Song}
 
     app.shell_context_processor(shell_context)
 
 
-def register_commands(app):
+def register_cli(app):
     """Register Click commands."""
     app.cli.add_command(commands.test)
     app.cli.add_command(commands.lint)
@@ -89,3 +85,37 @@ def configure_logger(app):
     handler = logging.StreamHandler(sys.stdout)
     if not app.logger.handlers:
         app.logger.addHandler(handler)
+
+
+def register_apispec(app):
+    """Configure APISpec for swagger support"""
+    apispec.init_app(app, security=[{"jwt": []}])
+    apispec.spec.components.security_scheme(
+        "jwt", {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
+    )
+    apispec.spec.components.schema(
+        "PaginatedResult",
+        {
+            "properties": {
+                "total": {"type": "integer"},
+                "pages": {"type": "integer"},
+                "next": {"type": "string"},
+                "prev": {"type": "string"},
+            }
+        },
+    )
+
+
+def init_celery(app=None):
+    app = app or create_app()
+    celery.conf.update(app.config.get("CELERY", {}))
+
+    class ContextTask(celery.Task):
+        """Make celery tasks work with Flask app context"""
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery.Task = ContextTask
+    return celery

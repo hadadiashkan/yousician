@@ -1,27 +1,31 @@
 version: "3.6"
 
 x-build-args: &build_args
-  INSTALL_PYTHON_VERSION: 3.10
-  INSTALL_NODE_VERSION: 
+  INSTALL_PYTHON_VERSION: 3.9
 
 x-default-volumes: &default_volumes
   volumes:
     - ./:/app
-    - node-modules:/app/node_modules
     - ./dev.db:/tmp/dev.db
 
+x-mongo-volumes: &mongo_volumes
+  volumes:
+    # named volumes
+    - './volumes/mongodb:/data/db'
+    - './volumes/mongo/config:/data/configdb'
+
+
 services:
-  flask-dev:
-    build:
-      context: .
-      target: development
-      args:
-        <<: *build_args
-    image: "yousician-development"
-    ports:
-      - "5000:5000"
-      - "2992:2992"
-    <<: *default_volumes
+#  flask-dev:
+#    build:
+#      context: .
+#      target: development
+#      args:
+#        <<: *build_args
+#    image: "yousician-development"
+#    ports:
+#      - "8000:5000"
+#    <<: *default_volumes
 
   flask-prod:
     build:
@@ -31,7 +35,7 @@ services:
         <<: *build_args
     image: "yousician-production"
     ports:
-      - "5000:5000"
+      - "8000:5000"
     environment:
       FLASK_ENV: production
       FLASK_DEBUG: 0
@@ -54,5 +58,14 @@ services:
     tty: true
     <<: *default_volumes
 
+  mongodb:
+    image: 'mongo:4.2.3-bionic'
+    ports:
+      - '27011:27017'
+    env_file:
+      - '.env'
+    <<: *mongo_volumes
+
 volumes:
-  node-modules:
+  mongodb: { }
+  mongoconfig: { }
