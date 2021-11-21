@@ -35,7 +35,7 @@ def create_app(config_object="config.settings.Config", testing=False):
 
 def register_extensions(app):
     """Register Flask extensions."""
-    mongo.init_app(app)
+    mongo.init_app(app) if not app.config.get('TESTING') else mongo.init_app(app, config={'alias': 'testdb'})
     jwt.init_app(app)
     return None
 

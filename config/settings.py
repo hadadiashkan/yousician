@@ -22,11 +22,13 @@ class Config:
     ENV = env.str("FLASK_ENV", default="production")
     DEBUG = ENV == "development"
 
-    MONGODB_SETTINGS = {
-        "db": env.str("MONGODB_DB"),
-        "host": env.str("MONGODB_HOST"),
-        "port": env.int("MONGODB_PORT"),
-    }
+    MONGODB_SETTINGS = [
+        {
+            "db": env.str("MONGODB_DB"),
+            "host": env.str("MONGODB_HOST"),
+            "port": env.int("MONGODB_PORT"),
+        }
+    ]
 
     UPLOAD_DIR = env.str("UPLOAD_DIR")
 

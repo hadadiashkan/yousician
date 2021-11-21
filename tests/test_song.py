@@ -1,9 +1,8 @@
 from flask import url_for
 
-from yousician.song.models import Song, Rate
 
-def test_get_songs(client):
+def test_get_songs(testapp):
     # test 404
-    user_url = url_for('app_song.user_by_id')
-    rep = client.get(user_url)
-    assert rep.status_code == 404
+    songs_url = url_for('app_song.song_list')
+    rep = testapp.get(songs_url)
+    assert rep.status_code == 200

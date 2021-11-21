@@ -77,8 +77,8 @@ def get_resources():
 
     api = Api(blueprint)
 
-    api.add_resource(SongList, "/songs")
-    api.add_resource(SongListAnalytic, "/songs/average-difficulty")
-    api.add_resource(RateSong, "/song/<string:song_id>/rate")
+    api.add_resource(SongList, "/songs", endpoint="song_list")
+    api.add_resource(SongListAnalytic, "/songs/average-difficulty", endpoint="songs_analytics")
+    api.add_resource(RateSong, "/song/<string:song_id>/rate", endpoint="rate")
 
     return blueprint
